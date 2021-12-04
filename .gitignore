@@ -348,3 +348,7 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+#Custom
+example/UapkiNetStandard20.Example.Console.App/certs
+example/UapkiNetStandard20.Example.Console.App/libraries
