@@ -136,12 +136,11 @@ namespace UapkiNetStandard20
                 DeInit();
                 UnmanagedLibrary.Unload(_libraryHandle);
             }
-            catch(Exception ex)
+            finally
             {
                 _libraryHandle = IntPtr.Zero;
                 _delegates.Clear();
                 _delegates = null;
-                throw ex;
             }
         }
     }
