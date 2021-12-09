@@ -103,10 +103,16 @@ namespace UapkiNetStandard20
             string result = null;
             if (resultPtr != null)
             {
-                int length = 0;
-                for (byte* i = resultPtr; *i != 0; i++, length++) ;
-                result = Encoding.UTF8.GetString(resultPtr, length);
-                _delegates.JsonFree((IntPtr)resultPtr);
+                try
+                {
+                    int length = 0;
+                    for (byte* i = resultPtr; *i != 0; i++, length++) ;
+                    result = Encoding.UTF8.GetString(resultPtr, length);
+                }
+                finally
+                {
+                    _delegates.JsonFree((IntPtr)resultPtr);
+                }
             }
             if (string.IsNullOrWhiteSpace(result))
             {
