@@ -4,9 +4,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UapkiNetStandard20.Common;
+using UapkiNetStandard20.Enums;
+using UapkiNetStandard20.Interfaces;
 using UapkiNetStandard20.Models;
 using UapkiNetStandard20.Models.Requests;
 using UapkiNetStandard20.Models.Requests.RequestParameters;
+using UapkiNetStandard20.Utils;
 using Empty = System.Object;
 
 namespace UapkiNetStandard20
@@ -94,7 +97,89 @@ namespace UapkiNetStandard20
 
         public void DeInit()
         {
-            Process<Empty>(new BaseRequest<Empty>("DEINIT"));
+            Process<Empty>(new DeInitRequest());
+        }
+
+        public List<Provider> GetProvidersFullInfo()
+        {
+            var providers = GetProviders();
+
+            if (providers != null && providers.Count > 0)
+            {
+                foreach (var provider in providers)
+                {
+                    provider.Storages = GetProviderStorages(provider);
+                    provider.Storages?.ForEach(f => f.StorageInfo = GetStorageInfo(provider, f));
+                }
+            }
+
+            return providers;
+        }
+
+        public List<Provider> GetProviders()
+        {
+            return Process<ProvidersList>(new ProvidersRequest())?.Providers; 
+        }
+
+        public List<Storage> GetProviderStorages(Provider provider)
+        {
+            try
+            {
+                var storages = Process<StoragesList>(new StoragesRequest(provider.Id))?.Storages;
+                storages?.ForEach(storage => storage.ProviderId = provider.Id);
+                return storages;
+            }
+            catch (UapkiException e)
+            {
+                if (e.ErrorCode != 258)
+                    throw;
+
+                return null;
+            }
+        }
+
+        public StorageInfo GetStorageInfo(Provider provider, Storage storage)
+        {
+            try
+            {
+                return Process<StorageInfo>(new StorageInfoRequest(provider.Id, storage.Id));
+            }
+            catch (UapkiException e)
+            {
+                if (e.ErrorCode != 258)
+                    throw;
+
+                return null;
+            }
+        }
+
+        public object OpenStorage(Storage storage)
+        {
+            if (storage.StorageOpenParameters == null)
+                throw new ArgumentNullException(nameof(Storage.StorageOpenParameters), "Provide Storage open parameters");
+
+            //TODO: Implement storageOpenParameters for different storage types
+            throw new NotImplementedException();
+            //TODO: storage.Keys = GetOpenedStorageKeys();
+        }
+
+        public void CloseStorage()
+        {
+            Process<Empty>(new CloseStorageRequest());
+        }
+
+        public List<KeyInfo> GetOpenedStorageKeys()
+        {
+            return Process<KeysList>(new KeysRequest())?.Keys;
+        }
+
+        public void SelectKey(KeyInfo key)
+        {
+            var additionalInfo = Process<SelectedKeyInfo>(new SelectKeyRequest(key.Id));
+
+            key.SigningAlgorithms = additionalInfo.SigningAlgorithms;
+            key.CertificateId = additionalInfo.CertificateId;
+            key.Certificate = Convert.FromBase64String(additionalInfo.CertificateBase64);
         }
 
         private unsafe TResponse Process<TResponse>(BaseRequest request)
@@ -116,7 +201,7 @@ namespace UapkiNetStandard20
             }
             if (string.IsNullOrWhiteSpace(result))
             {
-                return default(TResponse);
+                return default;
             }
 
             var resultModel = JsonConvert.DeserializeObject<CommonResponse<TResponse>>(result);
