@@ -2,14 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UapkiNetStandard20.Common;
-using UapkiNetStandard20.Enums;
 using UapkiNetStandard20.Interfaces;
 using UapkiNetStandard20.Models;
 using UapkiNetStandard20.Models.Requests;
 using UapkiNetStandard20.Models.Requests.RequestParameters;
-using UapkiNetStandard20.Utils;
 using Empty = System.Object;
 
 namespace UapkiNetStandard20
@@ -19,6 +18,8 @@ namespace UapkiNetStandard20
         private IntPtr _libraryHandle = IntPtr.Zero;
         private Delegates _delegates = null;
         private VersionInformation _versionInformation;
+        private List<Provider> _providers;
+        private readonly string _libraryAbsolutePath;
 
         public UapkiNet(string libraryAbsolutePath)
         {
@@ -30,6 +31,7 @@ namespace UapkiNetStandard20
             _libraryHandle = UnmanagedLibrary.Load(libraryAbsolutePath);
             _delegates = new Delegates(_libraryHandle);
             _versionInformation = Process<VersionInformation>(new VersionRequest());
+            _libraryAbsolutePath = libraryAbsolutePath;
         }
 
         public VersionInformation Version()
@@ -56,7 +58,7 @@ namespace UapkiNetStandard20
                 {
                     CmProviders = new CmProviders
                     {
-                        Directory = "",
+                        Directory = $"{Path.GetDirectoryName(_libraryAbsolutePath)}\\",
                         AllowedProviders = new AllowedProvider[] {
                             new AllowedProvider {
                                 Library = "cm-pkcs12"
@@ -92,7 +94,9 @@ namespace UapkiNetStandard20
                 }
             };
 
-            return Process<InitializationInformation>(intitRequest);
+            var result = Process<InitializationInformation>(intitRequest);
+            _providers = GetProviders();
+            return result;
         }
 
         public void DeInit()
@@ -109,7 +113,7 @@ namespace UapkiNetStandard20
                 foreach (var provider in providers)
                 {
                     provider.Storages = GetProviderStorages(provider);
-                    provider.Storages?.ForEach(f => f.StorageInfo = GetStorageInfo(provider, f));
+                    provider.Storages?.ForEach(f => f.StorageInfo = GetStorageInfo(f));
                 }
             }
 
@@ -118,7 +122,7 @@ namespace UapkiNetStandard20
 
         public List<Provider> GetProviders()
         {
-            return Process<ProvidersList>(new ProvidersRequest())?.Providers; 
+            return _providers ?? Process<ProvidersList>(new ProvidersRequest())?.Providers; 
         }
 
         public List<Storage> GetProviderStorages(Provider provider)
@@ -131,36 +135,47 @@ namespace UapkiNetStandard20
             }
             catch (UapkiException e)
             {
-                if (e.ErrorCode != 258)
-                    throw;
+                if (e.ErrorCode == 1030)
+                    return null;
 
-                return null;
+                throw;
             }
         }
 
-        public StorageInfo GetStorageInfo(Provider provider, Storage storage)
+        public StorageInfo GetStorageInfo(Storage storage)
         {
             try
             {
-                return Process<StorageInfo>(new StorageInfoRequest(provider.Id, storage.Id));
+                return Process<StorageInfo>(new StorageInfoRequest(storage.ProviderId, storage.Id));
             }
             catch (UapkiException e)
             {
-                if (e.ErrorCode != 258)
-                    throw;
+                if (e.ErrorCode == 1030)
+                    return null;
 
-                return null;
+                throw;
             }
         }
 
-        public object OpenStorage(Storage storage)
+        public Storage OpenStorage(IStorageOpenParameters openParameters)
         {
-            if (storage.StorageOpenParameters == null)
-                throw new ArgumentNullException(nameof(Storage.StorageOpenParameters), "Provide Storage open parameters");
+            if (openParameters == null)
+                throw new ArgumentNullException(nameof(openParameters), "Provide Storage open parameters");
 
             //TODO: Implement storageOpenParameters for different storage types
-            throw new NotImplementedException();
-            //TODO: storage.Keys = GetOpenedStorageKeys();
+
+
+            var storage = Process<Storage>(new OpenStorageRequest(openParameters));
+            if (storage == null)
+                throw new Exception("Open storage unknown error");
+
+            storage.Id = openParameters.Storage;
+            storage.ProviderId = openParameters.Provider;
+            storage.StorageOpenParameters = openParameters;
+            storage.StorageInfo = GetStorageInfo(storage);
+            storage.Keys = GetOpenedStorageKeys();
+
+            return storage;
         }
 
         public void CloseStorage()
@@ -173,13 +188,41 @@ namespace UapkiNetStandard20
             return Process<KeysList>(new KeysRequest())?.Keys;
         }
 
-        public void SelectKey(KeyInfo key)
+        public void SelectKey(Storage storage, string keyId)
         {
+            var keyIndex = storage.Keys.FindIndex(key => key.Id.Equals(keyId));
+            if (keyIndex == -1)
+                throw new ArgumentException($"Storage has no key with Id \"{keyId}\"", nameof(keyId));
+            SelectKey(storage, keyIndex);
+        }
+
+        public void SelectKey(Storage storage, int keyIndex)
+        {
+            var key = storage.Keys[keyIndex];
             var additionalInfo = Process<SelectedKeyInfo>(new SelectKeyRequest(key.Id));
 
             key.SigningAlgorithms = additionalInfo.SigningAlgorithms;
             key.CertificateId = additionalInfo.CertificateId;
             key.Certificate = Convert.FromBase64String(additionalInfo.CertificateBase64);
+        }
+
+        public string CreateKey(Storage storage, int? mechanismIndex = null, string parameter = null, string label = null)
+        {
+            var id = Process<string>(new CreateKeyRequest(new CreateKeyParameters()
+            {
+                Mechanism = mechanismIndex == null ? null : storage.Mechanisms[mechanismIndex.Value].Id,
+                Parameter = parameter,
+                Label = label
+            }));
+            storage.Keys = GetOpenedStorageKeys();
+            return id;
+        }
+
+        public void DeleteKey(Storage storage, int keyIndex) 
+        {
+            var key = storage.Keys[keyIndex];
+            Process<Empty>(new DeleteKeyRequest(key.Id));
+            storage.Keys = GetOpenedStorageKeys();
         }
 
         private unsafe TResponse Process<TResponse>(BaseRequest request)

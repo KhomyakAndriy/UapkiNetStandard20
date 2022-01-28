@@ -5,12 +5,12 @@ using UapkiNetStandard20.Models.Requests.RequestParameters;
 
 namespace UapkiNetStandard20.Models.Requests
 {
-    internal class SelectKeyRequest: BaseRequest<IdParameters>
+    internal class DeleteKeyRequest: BaseRequest<IdParameters>
     {
-        private const string MethodName = "SELECT_KEY";
-        public SelectKeyRequest(string id) : base(MethodName)
+        private const string MethodName = "DELETE_KEY";
+        public DeleteKeyRequest(string id) : base(MethodName)
         {
-            Parameters = new IdParameters()
+            Parameters = new IdParameters
             {
                 Id = id
             };

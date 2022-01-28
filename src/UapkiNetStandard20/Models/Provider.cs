@@ -23,7 +23,7 @@ namespace UapkiNetStandard20.Models
 
         public string Manufacturer { get; set; }
 
-        public string SupportListStorages { get; set; }
+        public bool SupportListStorages { get; set; }
 
         public List<Storage> Storages { get; set; }
     }

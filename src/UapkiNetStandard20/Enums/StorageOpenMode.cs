@@ -1,19 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using System.Runtime.Serialization;
 
 namespace UapkiNetStandard20.Enums
 {
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum  StorageOpenMode
     {
-        [Description("RW")]
+        [EnumMember(Value = "RW")]
         ReadWrite,
 
-        [Description("RO")]
+        [EnumMember(Value = "RO")]
         ReadOnly,
 
-        [Description("CREATE")]
+        [EnumMember(Value = "CREATE")]
         Create
     }
 }

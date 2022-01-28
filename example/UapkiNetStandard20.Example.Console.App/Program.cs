@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using UapkiNetStandard20.Enums;
+using UapkiNetStandard20.Models.StorageOpenParameters;
 
 namespace UapkiNetStandard20.Example.ConsoleApp
 {
@@ -19,6 +21,7 @@ namespace UapkiNetStandard20.Example.ConsoleApp
                 Console.WriteLine($"Запуск:\t\t\t{(initSuccess ? "Успiшний": "Помилка")}");
                 if (initSuccess)
                 {
+
                     var providers = library.GetProvidersFullInfo();
                     Console.WriteLine($"Кiлькiсть провайдерiв:\t{providers.Count}");
                     foreach (var provider in providers)
@@ -37,6 +40,18 @@ namespace UapkiNetStandard20.Example.ConsoleApp
                         }
 
                     }
+
+                    Console.WriteLine($"Вкажіть повний шлях сховища PKCS12:");
+                    var storageId = Console.ReadLine();
+                    Console.WriteLine($"Вкажіть пароль сховища PKCS12:");
+                    var password = Console.ReadLine();
+
+                    var storage = library.OpenStorage(new Pkcs12StorageOpenParameters()
+                    {
+                        Storage = storageId,
+                        Password = password,
+                    });
+                    library.SelectKey(storage, 1);
                 }
 
             }

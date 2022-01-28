@@ -28,6 +28,10 @@ namespace UapkiNetStandard20.Models
 
         public List<KeyInfo> Keys { get; set; }
 
+        public List<Mechanism> Mechanisms { get; set; }
+
+        public bool UserPresense { get; set; }
+
         public IStorageOpenParameters StorageOpenParameters { get; set; }
     }
 }

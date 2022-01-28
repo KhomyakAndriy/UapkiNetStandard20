@@ -10,35 +10,31 @@ namespace UapkiNetStandard20.Models.StorageOpenParameters
 {
     public class Pkcs12StorageOpenParameters : IStorageOpenParameters
     {
+        [JsonProperty("provider")]
+        public string Provider { get; }
+
         [JsonProperty("storage")]
         public string Storage { get; set; }
 
-        [JsonIgnore]
-        public StorageOpenMode OpenMode 
-        { 
-            get => _openMode;
-            set
-            {
-                _openMode = value;
-                _mode = _openMode.GetDescription();
-            }
-        }
-
         [JsonProperty("mode")]
-        public string UapkiMode => _mode;
+        public StorageOpenMode OpenMode { get; set; }
 
-        [JsonProperty("otherParams")]
-        public Pkcs12StorageOpenInnerParameters OtherParameters { get; set; }
+        [JsonProperty("password")]
+        public string Password { get; set; }
 
-        private string _mode;
-        private StorageOpenMode _openMode;
+        [JsonProperty("openParams")]
+        public Pkcs12StorageOpenInnerParameters OpenParameters { get; set; }
+
+        public Pkcs12StorageOpenParameters()
+        {
+            Provider = "PKCS12";
+            OpenParameters = new Pkcs12StorageOpenInnerParameters();
+            OpenMode = StorageOpenMode.ReadOnly;
+        }
     }
 
     public class Pkcs12StorageOpenInnerParameters
     {
-        [JsonProperty("password")]
-        public string Password { get; set; }
-
         [JsonProperty("bagCipher")]
         public string Cipher { get; set; }
 
@@ -46,9 +42,17 @@ namespace UapkiNetStandard20.Models.StorageOpenParameters
         public string KeyDerivationFunction { get; set; }
 
         [JsonProperty("iterations")]
-        public string KdfIterations { get; set; }
+        public int KdfIterations { get; set; }
 
         [JsonProperty("macAlgo")]
         public string MacAlgorithm { get; set; }
+
+        public Pkcs12StorageOpenInnerParameters()
+        {
+            Cipher = "1.2.804.2.1.1.1.1.1.1.3";
+            KeyDerivationFunction = "1.2.804.2.1.1.1.1.1.2";
+            MacAlgorithm = "1.2.804.2.1.1.1.1.2.1";
+            KdfIterations = 10000;
+        }
     }
 }
