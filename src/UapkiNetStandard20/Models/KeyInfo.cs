@@ -38,5 +38,7 @@ namespace UapkiNetStandard20.Models
         public string CertificateId { get; set; }
 
         public byte[] Certificate { get; set; }
+
+        public bool IsSelected { get; internal set; }
     }
 }

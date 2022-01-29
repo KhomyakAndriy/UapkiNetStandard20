@@ -5,16 +5,21 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using UapkiNetStandard20.Common;
+using UapkiNetStandard20.Enums;
 using UapkiNetStandard20.Interfaces;
 using UapkiNetStandard20.Models;
 using UapkiNetStandard20.Models.Requests;
 using UapkiNetStandard20.Models.Requests.RequestParameters;
+using UapkiNetStandard20.Models.Signing;
+using UapkiNetStandard20.Models.Verifying;
 using Empty = System.Object;
 
 namespace UapkiNetStandard20
 {
     public class UapkiNet: IDisposable
     {
+        private const int IndexNotFound = -1;
+
         private IntPtr _libraryHandle = IntPtr.Zero;
         private Delegates _delegates = null;
         private VersionInformation _versionInformation;
@@ -56,27 +61,7 @@ namespace UapkiNetStandard20
             {
                 Parameters = new InitializationParameters
                 {
-                    CmProviders = new CmProviders
-                    {
-                        Directory = $"{Path.GetDirectoryName(_libraryAbsolutePath)}\\",
-                        AllowedProviders = new AllowedProvider[] {
-                            new AllowedProvider {
-                                Library = "cm-pkcs12"
-                            },
-                            new AllowedProvider {
-                                Library = "cm-diamond"
-                            },
-                            new AllowedProvider {
-                                Library = "cm-almaz1c"
-                            },
-                            new AllowedProvider {
-                                Library = "cm-crystal1"
-                            },
-                            new AllowedProvider {
-                                Library = "cm-stoken"
-                            }
-                        }
-                    },
+                    CmProviders = new CmProviders($"{Path.GetDirectoryName(_libraryAbsolutePath)}\\"),
                     CertificateCache = new CertificateCache
                     {
                         Path = certCachePath,
@@ -191,7 +176,7 @@ namespace UapkiNetStandard20
         public void SelectKey(Storage storage, string keyId)
         {
             var keyIndex = storage.Keys.FindIndex(key => key.Id.Equals(keyId));
-            if (keyIndex == -1)
+            if (keyIndex == IndexNotFound)
                 throw new ArgumentException($"Storage has no key with Id \"{keyId}\"", nameof(keyId));
             SelectKey(storage, keyIndex);
         }
@@ -204,6 +189,7 @@ namespace UapkiNetStandard20
             key.SigningAlgorithms = additionalInfo.SigningAlgorithms;
             key.CertificateId = additionalInfo.CertificateId;
             key.Certificate = Convert.FromBase64String(additionalInfo.CertificateBase64);
+            key.IsSelected = true;
         }
 
         public string CreateKey(Storage storage, int? mechanismIndex = null, string parameter = null, string label = null)
@@ -223,6 +209,57 @@ namespace UapkiNetStandard20
             var key = storage.Keys[keyIndex];
             Process<Empty>(new DeleteKeyRequest(key.Id));
             storage.Keys = GetOpenedStorageKeys();
+        }
+
+        public byte[] GenerateCertificateSigningRequest(Storage storage, string signAlgorithm = null)
+        {
+            if (string.IsNullOrWhiteSpace(signAlgorithm))
+                return GenerateCertificateSigningRequest(storage, (int?)null);
+            
+            var signAlgorithmIndex = storage.Keys.First(f => f.IsSelected).SigningAlgorithms.FindIndex(alg => alg.Equals(signAlgorithm));
+            if (signAlgorithmIndex == IndexNotFound)
+                throw new ArgumentException($"Selected key has no sign algorithm \"{signAlgorithm}\"", nameof(signAlgorithm));
+
+            return GenerateCertificateSigningRequest(storage, signAlgorithmIndex);
+        }
+
+        public byte[] GenerateCertificateSigningRequest(Storage storage, int? signAlgorithmIndex = null)
+        {
+            var signAlgorithm = signAlgorithmIndex.HasValue ? 
+                storage.Keys.First(f => f.IsSelected).SigningAlgorithms[signAlgorithmIndex.Value] : 
+                null;
+
+            var result = Process<Csr>(new GetCsrRequest(signAlgorithm));
+            return Convert.FromBase64String(result.BytesBase64);
+        }
+
+        public void ChangePassword(string oldPassword, string newPassword)
+        {
+            Process<Empty>(new ChangePasswordRequest(oldPassword, newPassword));
+        }
+
+        public object InitKeyUsage(object parameters)
+        {
+            return Process<object>(new InitKeyUsageRequest(parameters));
+        }
+
+        public List<SignatureResult> Sign(Sign sign)
+        {
+            return Process<SigningResponse>(new SignRequest(sign)).Signatures;
+        }
+
+        public IVerificationResult Verify(SignatureFormat format, Verify verify)
+        {
+            switch (format)
+            {
+                case SignatureFormat.Cms:
+                case SignatureFormat.CadesBes:
+                    return Process<CadesOrCmsVerificationResult>(new VerifyRequest(format, verify));
+                case SignatureFormat.Raw:
+                    return Process<RawVerificationResult>(new VerifyRequest(format, verify));
+                default:
+                    throw new NotImplementedException($"Verification for format \"{format:G}\" not implemented in this version");
+            }
         }
 
         private unsafe TResponse Process<TResponse>(BaseRequest request)

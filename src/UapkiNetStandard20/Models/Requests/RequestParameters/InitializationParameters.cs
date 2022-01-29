@@ -29,7 +29,27 @@ namespace UapkiNetStandard20.Models.Requests.RequestParameters
         [JsonProperty("allowedProviders")]
         public IEnumerable<AllowedProvider> AllowedProviders { get; set; }
 
-
+        public CmProviders(string dir)
+        {
+            Directory = dir;
+            AllowedProviders = new AllowedProvider[] {
+                new AllowedProvider {
+                    Library = "cm-pkcs12"
+                },
+                new AllowedProvider {
+                    Library = "cm-diamond"
+                },
+                new AllowedProvider {
+                    Library = "cm-almaz1c"
+                },
+                new AllowedProvider {
+                    Library = "cm-crystal1"
+                },
+                new AllowedProvider {
+                    Library = "cm-stoken"
+                }
+            };
+        }
     }
 
     internal class AllowedProvider
