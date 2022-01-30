@@ -11,7 +11,7 @@ namespace UapkiNetStandard20.Models.Signing
         public SignParameters SignParameters { get; set; }
 
         [JsonProperty("dataTbs")]
-        public DataParameters DataParameters { get; set; }
+        public List<DataParameters> DataParameters { get; set; }
 
         [JsonProperty("keyParams")]
         public KeyParameters KeyParameters { get; set; }

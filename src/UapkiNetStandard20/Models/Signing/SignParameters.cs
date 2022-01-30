@@ -6,7 +6,15 @@ namespace UapkiNetStandard20.Models.Signing
     public class SignParameters
     {
         [JsonProperty("signatureFormat")]
-        public SignatureFormat Format { get; set; }
+        public SignatureFormat Format 
+        { 
+            get => _format; 
+            set
+            {
+                _format = value;
+                NeedIncludeContentTimestamp = _format == SignatureFormat.CadesT;
+            } 
+        }
 
         [JsonProperty("signAlgo")]
         public string Algorithm { get; set; }
@@ -24,11 +32,16 @@ namespace UapkiNetStandard20.Models.Signing
         public bool NeedIncludeHostTimestamp { get; set; }
 
         [JsonProperty("includeContentTS")]
-        public bool NeedIncludeContentTimestamp { get; set; }
+        public bool NeedIncludeContentTimestamp { get; private set; }
+
+        [JsonProperty("signaturePolicy")]
+        public SignaturePolicy SignaturePolicy { get; set; }
 
         //TODO: Uncomment after implementation in library
         //[JsonProperty("certs")]
         //public string[] Certificates { get; set; }
+
+        private SignatureFormat _format;
 
         public SignParameters()
         {

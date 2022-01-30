@@ -12,6 +12,7 @@ using UapkiNetStandard20.Models.Requests;
 using UapkiNetStandard20.Models.Requests.RequestParameters;
 using UapkiNetStandard20.Models.Signing;
 using UapkiNetStandard20.Models.Verifying;
+using UapkiNetStandard20.Utils;
 using Empty = System.Object;
 
 namespace UapkiNetStandard20
@@ -188,7 +189,7 @@ namespace UapkiNetStandard20
 
             key.SigningAlgorithms = additionalInfo.SigningAlgorithms;
             key.CertificateId = additionalInfo.CertificateId;
-            key.Certificate = Convert.FromBase64String(additionalInfo.CertificateBase64);
+            key.Certificate = ConvertExtension.FromBase64OrNull(additionalInfo.CertificateBase64);
             key.IsSelected = true;
         }
 
@@ -254,12 +255,23 @@ namespace UapkiNetStandard20
             {
                 case SignatureFormat.Cms:
                 case SignatureFormat.CadesBes:
+                case SignatureFormat.CadesT:
                     return Process<CadesOrCmsVerificationResult>(new VerifyRequest(format, verify));
                 case SignatureFormat.Raw:
                     return Process<RawVerificationResult>(new VerifyRequest(format, verify));
                 default:
                     throw new NotImplementedException($"Verification for format \"{format:G}\" not implemented in this version");
             }
+        }
+
+        public List<CertificateStorageRecord> AddCertificates(byte[][] certificates, bool permanent)
+        {
+            return Process<AddCertificateResult>(new AddCertificateRequest(certificates, permanent)).Certificates;
+        }
+
+        public List<CertificateStorageRecord> AddCertificates(byte[] bundle, bool permanent)
+        {
+            return Process<AddCertificateResult>(new AddCertificateRequest(bundle, permanent)).Certificates;
         }
 
         private unsafe TResponse Process<TResponse>(BaseRequest request)

@@ -16,6 +16,11 @@ namespace UapkiNetStandard20.Models.Requests
         [JsonProperty("method")]
         public string Method { get; set; }
 
+        private static JsonSerializerSettings _serializationSettings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
         public BaseRequest(string methodName)
         {
             Method = methodName;
@@ -29,7 +34,7 @@ namespace UapkiNetStandard20.Models.Requests
 #else
             format = Formatting.None;
 #endif
-            return JsonConvert.SerializeObject(this, format);
+            return JsonConvert.SerializeObject(this, format, _serializationSettings);
         }
     }
 }

@@ -22,7 +22,7 @@ namespace UapkiNetStandard20.Models.Requests
 
             var cadesCmsNotValid = string.IsNullOrEmpty(Parameters.SignatureData.SignedDataBase64);
 
-            if ((cadesCmsNotValid && (format == SignatureFormat.Cms || format == SignatureFormat.CadesBes)) ||
+            if ((cadesCmsNotValid && format != SignatureFormat.Raw) ||
                 (rawNotValid && format == SignatureFormat.Raw))
             {
                 throw new ArgumentException($"Parameters not valid for format {format:G}");

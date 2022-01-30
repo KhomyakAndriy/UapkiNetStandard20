@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 namespace UapkiNetStandard20.Common
 {
     /// <summary>
-    /// Exception indicating an attempt to load unmanaged PKCS#11 library designated for a different architecture
+    /// Exception indicating an attempt to load unmanaged library designated for a different architecture
     /// </summary>
     [Serializable]
     public class LibraryArchitectureException : Exception

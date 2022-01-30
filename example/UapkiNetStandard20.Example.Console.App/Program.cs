@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using UapkiNetStandard20.Enums;
 using UapkiNetStandard20.Models.StorageOpenParameters;
+using UapkiNetStandard20.Models.Signing;
+using System.Collections.Generic;
 
 namespace UapkiNetStandard20.Example.ConsoleApp
 {
@@ -40,18 +42,46 @@ namespace UapkiNetStandard20.Example.ConsoleApp
                         }
 
                     }
+                    Console.WriteLine($"Вкажiть повний шлях сховища сертифiкатiв (.p7b) або залиште поле пустим:");
+                    var p7bPath = Console.ReadLine();
+                    if (!string.IsNullOrWhiteSpace(p7bPath) && File.Exists(p7bPath))
+                    {
+                        var certificateIds = library.AddCertificates(File.ReadAllBytes("CACertificates.p7b"), true);
+                    }
 
-                    Console.WriteLine($"Вкажіть повний шлях сховища PKCS12:");
+                    Console.WriteLine($"Вкажiть повний шлях сховища PKCS12:");
                     var storageId = Console.ReadLine();
-                    Console.WriteLine($"Вкажіть пароль сховища PKCS12:");
+                    Console.WriteLine($"Вкажiть пароль сховища PKCS12:");
                     var password = Console.ReadLine();
 
                     var storage = library.OpenStorage(new Pkcs12StorageOpenParameters()
                     {
                         Storage = storageId,
-                        Password = password,
+                        Password = password
                     });
-                    library.SelectKey(storage, 1);
+                    library.SelectKey(storage, 0);
+                    var sign = library.Sign(new Sign()
+                    {
+                        SignParameters = new SignParameters()
+                        {
+                            Format = SignatureFormat.CadesT,
+                            IsDataDetached = true,
+                            NeedIncludeCertificate = true,
+                            NeedIncludeHostTimestamp = true,
+                            Algorithm = "1.2.804.2.1.1.1.1.3.1.1",
+                            SignaturePolicy = SignaturePolicy.Default
+                        },
+                        DataParameters = new List<DataParameters>()
+                        {
+                            new DataParameters()
+                            {
+                                Id = "doc-0",
+                                BytesBase64 = Convert.ToBase64String(new byte[] { 1, 2, 3 })
+                            }
+                        }
+                    }).First();
+
+                    Console.WriteLine($"{sign.Id}: {sign.BytesBase64}");
                 }
 
             }

@@ -15,7 +15,10 @@ namespace UapkiNetStandard20.Enums
 
         [EnumMember(Value = "CMS")]
         Cms,
-        
+
+        [EnumMember(Value = "CAdES-T")]
+        CadesT,
+
         [EnumMember(Value = "CAdES-BES")]
         CadesBes
     }
