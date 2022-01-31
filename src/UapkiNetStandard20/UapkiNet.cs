@@ -8,6 +8,7 @@ using UapkiNetStandard20.Common;
 using UapkiNetStandard20.Enums;
 using UapkiNetStandard20.Interfaces;
 using UapkiNetStandard20.Models;
+using UapkiNetStandard20.Models.Certificate;
 using UapkiNetStandard20.Models.Requests;
 using UapkiNetStandard20.Models.Requests.RequestParameters;
 using UapkiNetStandard20.Models.Signing;
@@ -272,6 +273,16 @@ namespace UapkiNetStandard20
         public List<CertificateStorageRecord> AddCertificates(byte[] bundle, bool permanent)
         {
             return Process<AddCertificateResult>(new AddCertificateRequest(bundle, permanent)).Certificates;
+        }
+
+        public CertificateV3 GetCertificateInformation(byte[] certificate)
+        {
+            return Process<CertificateV3>(new CertificateInformationRequest(certificate));
+        }
+
+        public CertificateV3 GetCertificateInformation(string certificateId)
+        {
+            return Process<CertificateV3>(new CertificateInformationRequest(certificateId));
         }
 
         private unsafe TResponse Process<TResponse>(BaseRequest request)
