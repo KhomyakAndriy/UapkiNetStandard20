@@ -5,9 +5,9 @@ using System.Text;
 
 namespace UapkiNetStandard20.Models.Requests.RequestParameters
 {
-    internal class CertificateInformationParameters: CertificateIdParameters
+    internal class CertificateIdParameters
     {
-        [JsonProperty("bytes")]
-        public string BytesBase64 { get; set; }
+        [JsonProperty("certId")]
+        public string CertificateIdBase64 { get; set; }
     }
 }

@@ -48,16 +48,11 @@ namespace UapkiNetStandard20
 
         public InitializationInformation Init(string certCachePath, string crlCachePath, string defaultTspUrl, List<byte[]> trustedCerts, bool offline = false)
         {
-            List<string> tCerts = null;
+            if (!Directory.Exists(certCachePath))
+                Directory.CreateDirectory(certCachePath);
 
-            if (trustedCerts != null)
-            {
-                tCerts = new List<string>();
-                foreach (var trustedCert in trustedCerts)
-                {
-                    tCerts.Add(Convert.ToBase64String(trustedCert));
-                }
-            }
+            if (!Directory.Exists(crlCachePath))
+                Directory.CreateDirectory(crlCachePath);
 
             var intitRequest = new InitializationRequest
             {
@@ -67,7 +62,7 @@ namespace UapkiNetStandard20
                     CertificateCache = new CertificateCache
                     {
                         Path = certCachePath,
-                        TrustedCertificates = tCerts
+                        TrustedCertificates = trustedCerts?.Select(s=> Convert.ToBase64String(s))
                     },
                     CrlCache = new CrlCache
                     {
@@ -283,6 +278,26 @@ namespace UapkiNetStandard20
         public CertificateV3 GetCertificateInformation(string certificateId)
         {
             return Process<CertificateV3>(new CertificateInformationRequest(certificateId));
+        }
+
+        public byte[] GetCertificateFromCache(string certificateId)
+        {
+            return Process<Bytes>(new GetCertificateRequest(certificateId)).Data;
+        }
+
+        public List<string> GetAllCertificateIdsFromCache()
+        {
+            return GetCertificateIdsByPage().Ids;
+        }
+
+        public CertificateCachePage GetCertificateIdsByPage(int pageNumber = 0, int? pageSize = null)
+        {
+            return Process<CertificateCachePage>(new ListCertificatesRequest(pageNumber, pageSize));
+        }
+
+        public void RemoveCertificateFromCache(string certificateId)
+        {
+            Process<Empty>(new RemoveCertificateFromCacheRequest(certificateId));
         }
 
         private unsafe TResponse Process<TResponse>(BaseRequest request)
