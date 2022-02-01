@@ -6,7 +6,7 @@ using UapkiNetStandard20.Utils;
 
 namespace UapkiNetStandard20.Models.Asn1
 {
-    public class Asn1DecodedItem
+    public class DecodedItem
     {
         [JsonProperty("bytes")]
         internal string BytesBase64 
@@ -36,6 +36,6 @@ namespace UapkiNetStandard20.Models.Asn1
     internal class Asn1DecodedItems
     {
         [JsonProperty("decoded")]
-        public List<Asn1DecodedItem> Decoded { get; set; }
+        public List<DecodedItem> Decoded { get; set; }
     }
 }

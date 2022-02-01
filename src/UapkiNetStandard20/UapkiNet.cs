@@ -347,7 +347,7 @@ namespace UapkiNetStandard20
             return ConvertExtension.FromBase64OrNull(Process<DigestResponse>(new DigestRequest(ptr, size, algorithm, isHashAlgorithm)).BytesBase64);
         }
 
-        public List<Asn1DecodedItem> Asn1Decode(List<ItemToDecode> itemsToDecode)
+        public List<DecodedItem> Asn1Decode(List<ItemToDecode> itemsToDecode)
         {
             return Process<Asn1DecodedItems>(new Asn1DecodeRequest(itemsToDecode)).Decoded;
         }
@@ -394,8 +394,7 @@ namespace UapkiNetStandard20
             var resultModel = JsonConvert.DeserializeObject<CommonResponse<TResponse>>(result);
 
             if (!resultModel.IsSuccess)
-            {
-                
+            {    
                 var ex = new UapkiException(resultModel.ErrorCode, resultModel.Error);
                 _logger?.Invoke(LogLevel.Error, ex.Message, ex);
                 throw ex;

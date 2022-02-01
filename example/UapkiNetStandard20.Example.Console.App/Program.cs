@@ -6,6 +6,7 @@ using UapkiNetStandard20.Models.StorageOpenParameters;
 using UapkiNetStandard20.Models.Signing;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 
 namespace UapkiNetStandard20.Example.ConsoleApp
 {
