@@ -300,6 +300,16 @@ namespace UapkiNetStandard20
             Process<Empty>(new RemoveCertificateFromCacheRequest(certificateId));
         }
 
+        public CertificateValidationResult VerifyCertificate(byte[] certificate, CertificateValidationType validationType, DateTime? crlValidateTime)
+        {
+            return Process<CertificateValidationResult>(new VerifyCertificateRequest(certificate, validationType, crlValidateTime));
+        }
+
+        public CertificateValidationResult VerifyCertificate(string certificateId, CertificateValidationType validationType, DateTime? crlValidateTime)
+        {
+            return Process<CertificateValidationResult>(new VerifyCertificateRequest(certificateId, validationType, crlValidateTime));
+        }
+
         private unsafe TResponse Process<TResponse>(BaseRequest request)
         {
             byte* resultPtr = (byte*)_delegates.Process(request.ToJson());
