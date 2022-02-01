@@ -8,6 +8,7 @@ using UapkiNetStandard20.Common;
 using UapkiNetStandard20.Enums;
 using UapkiNetStandard20.Interfaces;
 using UapkiNetStandard20.Models;
+using UapkiNetStandard20.Models.Asn1;
 using UapkiNetStandard20.Models.Certificate;
 using UapkiNetStandard20.Models.Crl;
 using UapkiNetStandard20.Models.Requests;
@@ -344,6 +345,11 @@ namespace UapkiNetStandard20
         public byte[] Digest(string ptr, int size, string algorithm = "2.16.840.1.101.3.4.2.1", bool isHashAlgorithm = true) //SHA-256
         {
             return ConvertExtension.FromBase64OrNull(Process<DigestResponse>(new DigestRequest(ptr, size, algorithm, isHashAlgorithm)).BytesBase64);
+        }
+
+        public List<Asn1DecodedItem> Asn1Decode(List<ItemToDecode> itemsToDecode)
+        {
+            return Process<Asn1DecodedItems>(new Asn1DecodeRequest(itemsToDecode)).Decoded;
         }
 
         public void Dispose()

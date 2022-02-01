@@ -6,7 +6,7 @@ using UapkiNetStandard20.Utils;
 
 namespace UapkiNetStandard20.Models
 {
-    public class Bytes
+    internal class Bytes
     {
         [JsonProperty("bytes")]
         internal string BytesBase64
