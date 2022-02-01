@@ -9,6 +9,7 @@ using UapkiNetStandard20.Enums;
 using UapkiNetStandard20.Interfaces;
 using UapkiNetStandard20.Models;
 using UapkiNetStandard20.Models.Certificate;
+using UapkiNetStandard20.Models.Crl;
 using UapkiNetStandard20.Models.Requests;
 using UapkiNetStandard20.Models.Requests.RequestParameters;
 using UapkiNetStandard20.Models.Signing;
@@ -308,6 +309,11 @@ namespace UapkiNetStandard20
         public CertificateValidationResult VerifyCertificate(string certificateId, CertificateValidationType validationType, DateTime? crlValidateTime)
         {
             return Process<CertificateValidationResult>(new VerifyCertificateRequest(certificateId, validationType, crlValidateTime));
+        }
+
+        public CrlStorageRecord AddCrl(byte[] crlBytes, bool permanent)
+        {
+            return Process<CrlStorageRecord>(new AddCrlRequest(crlBytes, permanent));
         }
 
         private unsafe TResponse Process<TResponse>(BaseRequest request)
