@@ -5,6 +5,7 @@ using UapkiNetStandard20.Enums;
 using UapkiNetStandard20.Models.StorageOpenParameters;
 using UapkiNetStandard20.Models.Signing;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace UapkiNetStandard20.Example.ConsoleApp
 {
@@ -13,12 +14,12 @@ namespace UapkiNetStandard20.Example.ConsoleApp
         static void Main(string[] args)
         {
             var osSafePath = Path.Combine(AppContext.BaseDirectory, "libraries", "x64", "uapki.dll");
-            using (var library = new UapkiNet(osSafePath))
+            using (var library = new UapkiNet(osSafePath, DebugLogger))
             {
                 var libraryInfo = library.Version();
                 Console.WriteLine($"Бiблiотека:\t\t{libraryInfo.Name}\nВерсiя:\t\t\t{libraryInfo.Version}");
 
-                var init = library.Init("certs/", "certs/crls/", "http://acskidd.gov.ua/services/tsp/", null);
+                var init = library.Init();
                 var initSuccess = init != null;
                 Console.WriteLine($"Запуск:\t\t\t{(initSuccess ? "Успiшний": "Помилка")}");
                 if (initSuccess)
@@ -86,6 +87,11 @@ namespace UapkiNetStandard20.Example.ConsoleApp
 
             }
             Console.ReadLine();
+        }
+
+        static void DebugLogger(LogLevel logLevel, string message, Exception exception = null)
+        {
+            Debug.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [{logLevel}]: {message}");
         }
     }
 }

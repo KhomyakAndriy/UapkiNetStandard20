@@ -28,8 +28,11 @@ namespace UapkiNetStandard20
         private VersionInformation _versionInformation;
         private List<Provider> _providers;
         private readonly string _libraryAbsolutePath;
+        private readonly Logger _logger;
 
-        public UapkiNet(string libraryAbsolutePath)
+        public delegate void Logger(LogLevel logLevel, string message, Exception exception = null);
+
+        public UapkiNet(string libraryAbsolutePath, Logger logger = null)
         {
             if (!UnmanagedLibrary.CheckIsAbsolutePath(libraryAbsolutePath))
             {
@@ -40,14 +43,21 @@ namespace UapkiNetStandard20
             _delegates = new Delegates(_libraryHandle);
             _versionInformation = Process<VersionInformation>(new VersionRequest());
             _libraryAbsolutePath = libraryAbsolutePath;
+            _logger = logger;
         }
 
         public VersionInformation Version()
         {
             return _versionInformation;
         }
-
-        public InitializationInformation Init(string certCachePath, string crlCachePath, string defaultTspUrl, List<byte[]> trustedCerts, bool offline = false)
+        //"certs/", ,, 
+        public InitializationInformation Init(
+            string certCachePath = "certs/", 
+            string crlCachePath = "certs/crls/", 
+            string defaultTspUrl = "http://acskidd.gov.ua/services/tsp/", 
+            List<byte[]> trustedCerts = null, 
+            bool offline = false
+            )
         {
             if (!Directory.Exists(certCachePath))
                 Directory.CreateDirectory(certCachePath);
@@ -350,9 +360,12 @@ namespace UapkiNetStandard20
                 _delegates = null;
             }
         }
+
         private unsafe TResponse Process<TResponse>(BaseRequest request)
         {
-            byte* resultPtr = (byte*)_delegates.Process(request.ToJson());
+            var json = request.ToJson();
+            _logger?.Invoke(LogLevel.Debug, $"Start sending request:\n{json}");
+            byte* resultPtr = (byte*)_delegates.Process(json);
             string result = null;
             if (resultPtr != null)
             {
@@ -376,7 +389,10 @@ namespace UapkiNetStandard20
 
             if (!resultModel.IsSuccess)
             {
-                throw new UapkiException(resultModel.ErrorCode, resultModel.Error);
+                
+                var ex = new UapkiException(resultModel.ErrorCode, resultModel.Error);
+                _logger?.Invoke(LogLevel.Error, ex.Message, ex);
+                throw ex;
             }
 
             return resultModel.Result;
