@@ -7,6 +7,7 @@ using UapkiNetStandard20.Models.Signing;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using UapkiNetStandard20.Models.Verifying;
 
 namespace UapkiNetStandard20.Example.ConsoleApp
 {
@@ -48,7 +49,7 @@ namespace UapkiNetStandard20.Example.ConsoleApp
                     var p7bPath = Console.ReadLine();
                     if (!string.IsNullOrWhiteSpace(p7bPath) && File.Exists(p7bPath))
                     {
-                        var certificateIds = library.AddCertificates(File.ReadAllBytes("CACertificates.p7b"), true);
+                        var certificateIds = library.AddCertificates(File.ReadAllBytes(p7bPath), true);
                     }
 
                     Console.WriteLine($"Вкажiть повний шлях сховища PKCS12:");
@@ -82,7 +83,13 @@ namespace UapkiNetStandard20.Example.ConsoleApp
                             }
                         }
                     }).First();
-
+                    //var verify = library.Verify(SignatureFormat.Cms, new Verify()
+                    //{
+                    //    SignatureData = new SignatureData()
+                    //    {
+                    //        SignedDataBase64 = Convert.ToBase64String(File.ReadAllBytes(...))
+                    //    }
+                    //});
                     Console.WriteLine($"{sign.Id}: {sign.BytesBase64}");
                 }
 
