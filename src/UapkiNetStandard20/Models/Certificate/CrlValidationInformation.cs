@@ -6,7 +6,7 @@ using UapkiNetStandard20.Enums;
 
 namespace UapkiNetStandard20.Models.Certificate
 {
-    public class CrlInformation
+    public class CrlValidationInformation
     {
         [JsonProperty("url")]
         public string Url { get; set; }

@@ -316,6 +316,40 @@ namespace UapkiNetStandard20
             return Process<CrlStorageRecord>(new AddCrlRequest(crlBytes, permanent));
         }
 
+        public CrlInformation GetCrlInformation(byte[] crlBytes)
+        {
+            return Process<CrlInformation>(new CrlInfoRequest(crlBytes));
+        }
+
+        public byte[] Digest(byte[] data, string algorithm = "2.16.840.1.101.3.4.2.1", bool isHashAlgorithm = true) //SHA-256
+        {
+            return ConvertExtension.FromBase64OrNull(Process<DigestResponse>(new DigestRequest(data, algorithm, isHashAlgorithm)).BytesBase64);
+        }
+
+        public byte[] Digest(string filePath, string algorithm = "2.16.840.1.101.3.4.2.1", bool isHashAlgorithm = true) //SHA-256
+        {
+            return ConvertExtension.FromBase64OrNull(Process<DigestResponse>(new DigestRequest(filePath, algorithm, isHashAlgorithm)).BytesBase64);
+        }
+
+        public byte[] Digest(string ptr, int size, string algorithm = "2.16.840.1.101.3.4.2.1", bool isHashAlgorithm = true) //SHA-256
+        {
+            return ConvertExtension.FromBase64OrNull(Process<DigestResponse>(new DigestRequest(ptr, size, algorithm, isHashAlgorithm)).BytesBase64);
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                DeInit();
+                UnmanagedLibrary.Unload(_libraryHandle);
+            }
+            finally
+            {
+                _libraryHandle = IntPtr.Zero;
+                _delegates.Clear();
+                _delegates = null;
+            }
+        }
         private unsafe TResponse Process<TResponse>(BaseRequest request)
         {
             byte* resultPtr = (byte*)_delegates.Process(request.ToJson());
@@ -346,21 +380,6 @@ namespace UapkiNetStandard20
             }
 
             return resultModel.Result;
-        }
-
-        public void Dispose()
-        {
-            try
-            {
-                DeInit();
-                UnmanagedLibrary.Unload(_libraryHandle);
-            }
-            finally
-            {
-                _libraryHandle = IntPtr.Zero;
-                _delegates.Clear();
-                _delegates = null;
-            }
         }
     }
 }

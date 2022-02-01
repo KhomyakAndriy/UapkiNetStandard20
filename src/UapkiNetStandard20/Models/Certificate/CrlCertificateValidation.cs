@@ -19,9 +19,9 @@ namespace UapkiNetStandard20.Models.Certificate
         public DateTime? RevocationTime { get; set; }
 
         [JsonProperty("full")]
-        public CrlInformation FullInformation { get; set; }
+        public CrlValidationInformation FullInformation { get; set; }
 
         [JsonProperty("delta")]
-        public CrlInformation DeltaInformation { get; set; }
+        public CrlValidationInformation DeltaInformation { get; set; }
     }
 }
