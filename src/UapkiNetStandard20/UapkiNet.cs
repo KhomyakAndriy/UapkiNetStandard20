@@ -352,6 +352,11 @@ namespace UapkiNetStandard20
             return Process<Asn1DecodedItems>(new Asn1DecodeRequest(itemsToDecode)).Decoded;
         }
 
+        public List<EncodedItem> Asn1Encode(List<ItemToEncode> itemsToEncode)
+        {
+            return Process<Asn1EncodedItems>(new Asn1EncodeRequest(itemsToEncode)).Encoded;
+        }
+
         public void Dispose()
         {
             try
