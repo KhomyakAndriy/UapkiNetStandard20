@@ -158,12 +158,12 @@ namespace UapkiNetStandard20
             return storage;
         }
 
-        public void CloseStorage()
+        #region Only for opened storage
+
+        internal void CloseStorage()
         {
             Process<Empty>(new CloseStorageRequest());
         }
-
-        #region Only for opened storage
 
         internal StorageInfo GetStorageInfo(Storage storage)
         {

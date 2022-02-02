@@ -42,6 +42,11 @@ namespace UapkiNetStandard20.Models
             _parentLibrary = parentLibrary;
         }
 
+        public void Close()
+        {
+            _parentLibrary.CloseStorage();
+        }
+
         public string CreateKey(int? mechanismIndex = null, string parameter = null, string label = null)
         {
             var mechanismId = mechanismIndex == null ? null : Mechanisms[mechanismIndex.Value].Id;

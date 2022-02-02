@@ -83,6 +83,7 @@ namespace UapkiNetStandard20.Example.ConsoleApp
                             }
                         }
                     }).First();
+                    storage.Close();
                     //var verify = library.Verify(new Verify()
                     //{
                     //    SignatureData = new SignatureData()
