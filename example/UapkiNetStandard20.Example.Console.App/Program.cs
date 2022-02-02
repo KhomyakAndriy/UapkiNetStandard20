@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using UapkiNetStandard20.Models.Verifying;
+using UapkiNetStandard20.Utils;
 
 namespace UapkiNetStandard20.Example.ConsoleApp
 {
@@ -15,6 +16,9 @@ namespace UapkiNetStandard20.Example.ConsoleApp
     {
         static void Main(string[] args)
         {
+
+            //var a = PrroHelper.FixDpsResponse(File.ReadAllBytes("C:\\a.txt"));
+
             var osSafePath = Path.Combine(AppContext.BaseDirectory, "libraries", "x64", "uapki.dll");
             using (var library = new UapkiNet(osSafePath, DebugLogger))
             {
@@ -62,8 +66,10 @@ namespace UapkiNetStandard20.Example.ConsoleApp
                         Storage = storageId,
                         Password = password
                     });
-                    library.SelectKey(storage, 0);
-                    var sign = library.Sign(new Sign()
+
+                    storage.Keys.First().SelectThisKey();
+
+                    var sign = storage.Sign(new Sign()
                     {
                         SignParameters = new SignParameters()
                         {
@@ -83,7 +89,7 @@ namespace UapkiNetStandard20.Example.ConsoleApp
                             }
                         }
                     }).First();
-                    //var verify = library.Verify(SignatureFormat.Cms, new Verify()
+                    //var verify = library.Verify(new Verify()
                     //{
                     //    SignatureData = new SignatureData()
                     //    {

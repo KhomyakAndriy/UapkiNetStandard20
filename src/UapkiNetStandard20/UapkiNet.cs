@@ -51,7 +51,7 @@ namespace UapkiNetStandard20
         {
             return _versionInformation;
         }
-        //"certs/", ,, 
+
         public InitializationInformation Init(
             string certCachePath = "certs/", 
             string crlCachePath = "certs/crls/", 
@@ -136,21 +136,6 @@ namespace UapkiNetStandard20
             }
         }
 
-        public StorageInfo GetStorageInfo(Storage storage)
-        {
-            try
-            {
-                return Process<StorageInfo>(new StorageInfoRequest(storage.ProviderId, storage.Id));
-            }
-            catch (UapkiException e)
-            {
-                if (e.ErrorCode == 1030)
-                    return null;
-
-                throw;
-            }
-        }
-
         public Storage OpenStorage(IStorageOpenParameters openParameters)
         {
             if (openParameters == null)
@@ -168,6 +153,7 @@ namespace UapkiNetStandard20
             storage.StorageOpenParameters = openParameters;
             storage.StorageInfo = GetStorageInfo(storage);
             storage.Keys = GetOpenedStorageKeys();
+            storage.SetParentLibrary(this);
 
             return storage;
         }
@@ -177,22 +163,30 @@ namespace UapkiNetStandard20
             Process<Empty>(new CloseStorageRequest());
         }
 
-        public List<KeyInfo> GetOpenedStorageKeys()
+        #region Only for opened storage
+
+        internal StorageInfo GetStorageInfo(Storage storage)
+        {
+            try
+            {
+                return Process<StorageInfo>(new StorageInfoRequest(storage.ProviderId, storage.Id));
+            }
+            catch (UapkiException e)
+            {
+                if (e.ErrorCode == 1030)
+                    return null;
+
+                throw;
+            }
+        }
+
+        internal List<KeyInfo> GetOpenedStorageKeys()
         {
             return Process<KeysList>(new KeysRequest())?.Keys;
         }
 
-        public void SelectKey(Storage storage, string keyId)
+        internal void SelectKey(KeyInfo key)
         {
-            var keyIndex = storage.Keys.FindIndex(key => key.Id.Equals(keyId));
-            if (keyIndex == IndexNotFound)
-                throw new ArgumentException($"Storage has no key with Id \"{keyId}\"", nameof(keyId));
-            SelectKey(storage, keyIndex);
-        }
-
-        public void SelectKey(Storage storage, int keyIndex)
-        {
-            var key = storage.Keys[keyIndex];
             var additionalInfo = Process<SelectedKeyInfo>(new SelectKeyRequest(key.Id));
 
             key.SigningAlgorithms = additionalInfo.SigningAlgorithms;
@@ -201,64 +195,46 @@ namespace UapkiNetStandard20
             key.IsSelected = true;
         }
 
-        public string CreateKey(Storage storage, int? mechanismIndex = null, string parameter = null, string label = null)
+        internal string CreateKey(string mechanismId, string parameter = null, string label = null)
         {
-            var id = Process<string>(new CreateKeyRequest(new CreateKeyParameters()
+            return Process<string>(new CreateKeyRequest(new CreateKeyParameters()
             {
-                Mechanism = mechanismIndex == null ? null : storage.Mechanisms[mechanismIndex.Value].Id,
+                Mechanism = mechanismId,
                 Parameter = parameter,
                 Label = label
             }));
-            storage.Keys = GetOpenedStorageKeys();
-            return id;
         }
 
-        public void DeleteKey(Storage storage, int keyIndex) 
+        internal void DeleteKey(string keyId) 
         {
-            var key = storage.Keys[keyIndex];
-            Process<Empty>(new DeleteKeyRequest(key.Id));
-            storage.Keys = GetOpenedStorageKeys();
+            Process<Empty>(new DeleteKeyRequest(keyId));
         }
 
-        public byte[] GenerateCertificateSigningRequest(Storage storage, string signAlgorithm = null)
+        internal byte[] GenerateCertificateSigningRequest(string signAlgorithm = null)
         {
-            if (string.IsNullOrWhiteSpace(signAlgorithm))
-                return GenerateCertificateSigningRequest(storage, (int?)null);
-            
-            var signAlgorithmIndex = storage.Keys.First(f => f.IsSelected).SigningAlgorithms.FindIndex(alg => alg.Equals(signAlgorithm));
-            if (signAlgorithmIndex == IndexNotFound)
-                throw new ArgumentException($"Selected key has no sign algorithm \"{signAlgorithm}\"", nameof(signAlgorithm));
-
-            return GenerateCertificateSigningRequest(storage, signAlgorithmIndex);
-        }
-
-        public byte[] GenerateCertificateSigningRequest(Storage storage, int? signAlgorithmIndex = null)
-        {
-            var signAlgorithm = signAlgorithmIndex.HasValue ? 
-                storage.Keys.First(f => f.IsSelected).SigningAlgorithms[signAlgorithmIndex.Value] : 
-                null;
-
             var result = Process<Csr>(new GetCsrRequest(signAlgorithm));
             return Convert.FromBase64String(result.BytesBase64);
         }
 
-        public void ChangePassword(string oldPassword, string newPassword)
+        internal void ChangePassword(string oldPassword, string newPassword)
         {
             Process<Empty>(new ChangePasswordRequest(oldPassword, newPassword));
         }
 
-        public object InitKeyUsage(object parameters)
+        internal object InitKeyUsage(object parameters)
         {
             return Process<object>(new InitKeyUsageRequest(parameters));
         }
 
-        public List<SignatureResult> Sign(Sign sign)
+        internal List<SignatureResult> Sign(Sign sign)
         {
             return Process<SigningResponse>(new SignRequest(sign)).Signatures;
         }
 
-        public IVerificationResult Verify(SignatureFormat format, Verify verify)
-        {
+        #endregion
+
+        public IVerificationResult Verify(Verify verify, SignatureFormat format = SignatureFormat.Cms)
+        {        
             switch (format)
             {
                 case SignatureFormat.Cms:
