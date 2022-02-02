@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace UapkiNetStandard20.Models.Requests.RequestParameters
+﻿namespace UapkiNetStandard20.Models.Requests.RequestParameters
 {
     internal class ChangePasswordRequest: BaseRequest<ChangePasswordParameters>
     {

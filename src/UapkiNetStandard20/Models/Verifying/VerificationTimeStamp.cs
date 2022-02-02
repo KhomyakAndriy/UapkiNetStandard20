@@ -1,7 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using UapkiNetStandard20.Enums;
 
 namespace UapkiNetStandard20.Models.Verifying

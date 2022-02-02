@@ -6,9 +6,6 @@ using UapkiNetStandard20.Models.StorageOpenParameters;
 using UapkiNetStandard20.Models.Signing;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
-using UapkiNetStandard20.Models.Verifying;
-using UapkiNetStandard20.Utils;
 
 namespace UapkiNetStandard20.Example.ConsoleApp
 {
@@ -16,9 +13,6 @@ namespace UapkiNetStandard20.Example.ConsoleApp
     {
         static void Main(string[] args)
         {
-
-            //var a = PrroHelper.FixDpsResponse(File.ReadAllBytes("C:\\a.txt"));
-
             var osSafePath = Path.Combine(AppContext.BaseDirectory, "libraries", "x64", "uapki.dll");
             using (var library = new UapkiNet(osSafePath, DebugLogger))
             {

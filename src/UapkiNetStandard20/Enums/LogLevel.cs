@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace UapkiNetStandard20.Enums
+﻿namespace UapkiNetStandard20.Enums
 {
     public enum LogLevel
     {

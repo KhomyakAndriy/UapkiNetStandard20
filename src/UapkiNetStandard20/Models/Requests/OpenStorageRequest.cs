@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using UapkiNetStandard20.Interfaces;
+﻿using UapkiNetStandard20.Interfaces;
 
 namespace UapkiNetStandard20.Models.Requests
 {

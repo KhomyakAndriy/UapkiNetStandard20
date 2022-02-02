@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using UapkiNetStandard20.Enums;
 using UapkiNetStandard20.Models.Certificate;
 

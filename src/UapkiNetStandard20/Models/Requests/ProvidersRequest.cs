@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace UapkiNetStandard20.Models.Requests
+﻿namespace UapkiNetStandard20.Models.Requests
 {
     internal class ProvidersRequest: BaseRequest
     {

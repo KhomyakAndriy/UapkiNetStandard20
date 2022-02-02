@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace UapkiNetStandard20.Models.Verifying
+﻿namespace UapkiNetStandard20.Models.Verifying
 {
     public class SignatureOptions
     {

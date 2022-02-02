@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using UapkiNetStandard20.Models.Signing;
+﻿using UapkiNetStandard20.Models.Signing;
 
 namespace UapkiNetStandard20.Models.Requests
 {
