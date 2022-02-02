@@ -182,7 +182,15 @@ namespace UapkiNetStandard20
 
         internal List<KeyInfo> GetOpenedStorageKeys()
         {
-            return Process<KeysList>(new KeysRequest())?.Keys;
+            var keys = Process<KeysList>(new KeysRequest())?.Keys;
+            if (keys != null)
+            {
+                foreach (var key in keys)
+                {
+                    key.SetParentLibrary(this);
+                }
+            }
+            return keys;
         }
 
         internal void SelectKey(KeyInfo key)
